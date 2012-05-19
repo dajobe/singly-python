@@ -1,4 +1,6 @@
-#!/usr/bin/python
+#!/usr/bin/env python
+# License - see UNLICENSE.md
+
 
 import urllib
 import urllib2
@@ -131,10 +133,10 @@ def main():
 
     singly.debug(True)
 
-    if False:
-        uri = singly.auth('twitter', my_authorize_callback)
-    else:
+    if secrets.OFFLINE:
         singly.access_token = secrets.MY_ACCESS_TOKEN
+    else:
+        uri = singly.auth('twitter', my_authorize_callback)
 
     r = singly.profiles()
     print "My Singly profiles are %s" % (str(r), )
