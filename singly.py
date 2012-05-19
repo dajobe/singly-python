@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 # License - see UNLICENSE.md
 
+"""
+Simple python API to Singly
+"""
 
 import urllib
 import urllib2
@@ -12,6 +15,8 @@ except ImportError:
     import json
 
 class Singly(object):
+    """Singly API"""
+
     API_ENDPOINT = 'https://api.singly.com/'
 
     SINGLY_AUTHORIZE_URL    = API_ENDPOINT + 'oauth/authorize'
@@ -40,9 +45,11 @@ class Singly(object):
         self._debug = False
 
     def debug(self, debug):
+        """Set debug flag"""
         self._debug = debug
 
-    def log(self, msg):
+    def _log(self, msg):
+        """Log a debug message"""
         if self._debug:
             print msg
 
@@ -55,26 +62,30 @@ class Singly(object):
         redirect_uri - optional redirect uri
         """
 
+        if redirect_uri is None:
+            redirect_uri = self.redirect_uri
+
         # Format of authorize URL:
-        # https://api.singly.com/oauth/authorize?client_id=CLIENT-ID&redirect_uri=REDIRECT-URI&service=SERVICE
-        qp = {
+        # https://api.singly.com/oauth/authorize?client_id=CLIENT-ID&
+        #   redirect_uri=REDIRECT-URI&service=SERVICE
+        authorize_params = {
             'client_id'    : self.app_key,
-            'redirect_uri' : self.redirect_uri,
+            'redirect_uri' : redirect_uri,
             'service'      : service
             }
-
-        query_params = urllib.urlencode(qp)
+        query_params = urllib.urlencode(authorize_params)
         authorize_uri = self.SINGLY_AUTHORIZE_URL + '?' + query_params
 
-        self.log("Calling authorize callback (%s)" % (authorize_uri, ))
+        self._log("Calling authorize callback (%s)" % (authorize_uri, ))
         (status1, oauth_code_uri) = callback(authorize_uri)
-        self.log("authorize callback response is (HTTP %s, URL %s)" % (status1, oauth_code_uri))
+        self._log("authorize callback response is (HTTP %s, URL %s)" % 
+                 (status1, oauth_code_uri))
 
         urlobj1 = urlparse.urlparse(oauth_code_uri)
         urlquery1 = urlparse.parse_qs(urlobj1.query)
         code = urlquery1['code'][0]
 
-        self.log("OAuth code is %s" % (code, ))
+        self._log("OAuth code is %s" % (code, ))
 
         # Now get the access token
 
@@ -88,12 +99,13 @@ class Singly(object):
         }
         post_data = urllib.urlencode(post_params)
 
-        self.log("Calling %s with params %s" % (oauth_get_access_token_uri, post_data))
+        self._log("Calling %s with params %s" % 
+                  (oauth_get_access_token_uri, post_data))
         request2 = urllib2.Request(oauth_get_access_token_uri, post_data)
         response2 = urllib2.urlopen(request2)
 
         access_token_data = response2.read()
-        self.log("Access token response data is %s" % (access_token_data, ))
+        self._log("Access token response data is %s" % (access_token_data, ))
 
         # Expect
         # {
@@ -102,30 +114,41 @@ class Singly(object):
         access_token_json = json.loads(access_token_data)
 
         access_token = access_token_json['access_token']
-        self.log("Access token is %s" % (access_token, ))
+        self._log("Access token is %s" % (access_token, ))
         self.access_token = access_token
 
+        return access_token
+
     def __endpoint(self, endpoint):
+        """Internal: call a Singly API endpoint"""
         url = self.API_ENDPOINT + endpoint + '?access_token=' + self.access_token
         response = urllib2.urlopen(url)
         data = response.read()
         jsondata = json.loads(data)
-        self.log("Endpoint %s returned json %s" % (endpoint, jsondata))
+        self._log("Endpoint %s returned json %s" % (endpoint, jsondata))
 
         return jsondata
 
     def profiles(self):
+        """Get profiles"""
         return self.__endpoint('profiles')
 
     def twitter_discovery(self):
+        """Get twitter discovery"""
         return self.__endpoint('services/twitter')
 
 
 def main():
+    """Test main"""
+
+    # This is where the private stuff is stored
     import secrets
 
-    def my_authorize_callback(status):
-        """Takes a URI, returns the redirected URI from the HTTP response"""
+    def my_authorize_callback(authentication_url):
+        """
+        Takes the authorization URI to show to a user and returns the
+        HTTP response HTTP status and final URI
+        """
         return ('301', secrets.MY_CODE_URI)
 
 
@@ -136,13 +159,14 @@ def main():
     if secrets.OFFLINE:
         singly.access_token = secrets.MY_ACCESS_TOKEN
     else:
-        uri = singly.auth('twitter', my_authorize_callback)
+        access_token = singly.auth('twitter', my_authorize_callback)
+        print "Result access token is %s - add to secrets.py" % (access_token, )
 
-    r = singly.profiles()
-    print "My Singly profiles are %s" % (str(r), )
+    val = singly.profiles()
+    print "My Singly profiles are %s" % (str(val), )
 
-    r = singly.twitter_discovery()
-    print "My Singly twitter discovery is %s" % (str(r), )
+    val = singly.twitter_discovery()
+    print "My Singly twitter discovery is %s" % (str(val), )
 
 
 if __name__ == "__main__":
