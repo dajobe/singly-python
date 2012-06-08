@@ -225,7 +225,7 @@ def main():
         print "Result access token is %s - add to secrets.py" % (access_token, )
 
     val = singly.service_names()
-    print "Singly service names are %s" % (json.dumps(val, indent=2), )
+    print "Singly service names are %s" % (str(val), )
 
     val = singly.services()
     print "Singly services are %s" % (str(val), )
