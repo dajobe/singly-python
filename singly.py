@@ -18,12 +18,12 @@ except ImportError:
 class Service(dict):
     """Singly Service"""
 
-    def __init__(self, name, d):
+    def __init__(self, name, dct):
         """Construct a Service description from service name response data"""
 
-        self.__dict = d
-        for k, v in d.iteritems():
-            setattr(self, k, v)
+        self.__dict = dct
+        for key, val in dct.iteritems():
+            setattr(self, key, val)
         self.name = name
 
     def __str__(self):
@@ -152,9 +152,12 @@ class Singly(object):
         url = self.API_ENDPOINT + endpoint + '?access_token=' + self.access_token
         response = urllib2.urlopen(url)
         data = response.read()
-        self._log("Endpoint %s returned data %s" % (endpoint, data))
+        if self._debug:
+            self._log("Endpoint %s returned data %s" % (endpoint, data))
         jsondata = json.loads(data)
-        self._log("Endpoint %s returned json %s" % (endpoint, json.dumps(jsondata, indent=2)))
+        if self._debug:
+            jd_str = json.dumps(jsondata, indent=2)
+            self._log("Endpoint %s returned json %s" % (endpoint, jd_str))
 
         return jsondata
 
