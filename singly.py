@@ -132,7 +132,7 @@ class Singly(object):
         data = response.read()
         self._log("Endpoint %s returned data %s" % (endpoint, data))
         jsondata = json.loads(data)
-        self._log("Endpoint %s returned json %s" % (endpoint, jsondata))
+        self._log("Endpoint %s returned json %s" % (endpoint, json.dumps(jsondata, indent=2)))
 
         return jsondata
 
@@ -201,19 +201,19 @@ def main():
         print "Result access token is %s - add to secrets.py" % (access_token, )
 
     val = singly.service_names()
-    print "Singly service names are %s" % (str(val), )
+    print "Singly service names are %s" % (json.dumps(val, indent=2), )
 
     val = singly.services()
-    print "Singly services are %s" % (str(val), )
+    print "Singly services are %s" % (json.dumps(val, indent=2), )
 
     val = singly.service('twitter')
-    print "Singly twitter service description: %s" % (str(val), )
+    print "Singly twitter service description: %s" % (json.dumps(val, indent=2), )
 
     val = singly.profiles()
-    print "My Singly profiles are %s" % (str(val), )
+    print "My Singly profiles are %s" % (json.dumps(val, indent=2), )
 
     val = singly.twitter_discovery()
-    print "My Singly twitter discovery is %s" % (str(val), )
+    print "My Singly twitter discovery is %s" % (json.dumps(val, indent=2), )
 
 
 if __name__ == "__main__":
