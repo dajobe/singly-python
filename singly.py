@@ -18,9 +18,10 @@ except ImportError:
 class Service(dict):
     """Singly Service"""
 
-    def __init__(self, name, dct):
+    def __init__(self, singly, name, dct):
         """Construct a Service description from service name response data"""
 
+        self.singly = singly
         self.__dict = dct
         for key, val in dct.iteritems():
             setattr(self, key, val)
@@ -34,6 +35,33 @@ class Service(dict):
 
     def __repr__(self):
         return repr(self.__dict)
+
+    def _endpoint(self, endpoint, params):
+        """Invoke an endpoint on a service"""
+
+        # https://dev.singly.com/services_overview
+        endpoint = "services/%s/%s" % (self.name, endpoint)
+
+        return self.singly._endpoint(endpoint, params)
+
+    def endpoint_range(self, endpoint, limit=None, offset=None, q=None):
+        """Get a range response for a service endpoint"""
+
+        params = {
+            'limit' : limit,
+            'offset' : offset,
+            'q' : q
+            }
+        return self._endpoint(endpoint, params)
+
+    def endpoint_get(self, endpoint, item_id):
+        """Get an item from a service endpoint"""
+
+        # https://dev.singly.com/services_overview
+        endpoint = "services/%s/%s/%s" % (self.name, endpoint, item_id)
+
+        return self.singly._endpoint(endpoint)
+
 
 
 class Singly(object):
@@ -147,13 +175,19 @@ class Singly(object):
 
         return access_token
 
-    def __endpoint(self, endpoint):
-        """Internal: call a Singly API endpoint"""
+    def _endpoint(self, endpoint, params = None):
+        """Internal: call a Singly API endpoint with option parameters"""
         endpoint_params = {
             'access_token' : self.access_token
             }
+        if params is not None:
+            for k, v in params.iteritems():
+                if v is not None:
+                    endpoint_params[k] = v
         query_params = urllib.urlencode(endpoint_params)
         url = self.API_ENDPOINT + endpoint + '?' + query_params
+
+        self._log("Calling endpoint URL %s" % (url, ))
 
         response = urllib2.urlopen(url)
         data = response.read()
@@ -170,9 +204,9 @@ class Singly(object):
         """Internal: get services and their names"""
         if self._services is not None:
             return
-        services = self.__endpoint('services')
+        services = self._endpoint('services')
         if services is not None:
-            self._services = dict([(name, Service(name, data))
+            self._services = dict([(name, Service(self, name, data))
                                     for (name, data) in services.iteritems()])
             self._service_names = services.keys()
             self._service_names.sort()
@@ -199,13 +233,13 @@ class Singly(object):
     # user specific
     def profiles(self):
         """Get profiles"""
-        return self.__endpoint('profiles')
+        return self._endpoint('profiles')
 
 
     # twitter service
     def twitter_discovery(self):
         """Get twitter discovery"""
-        return self.__endpoint('services/twitter')
+        return self._endpoint('services/twitter')
 
 
 def main():
@@ -238,8 +272,9 @@ def main():
     val = singly.services()
     print "Singly services are %s" % (str(val), )
 
-    svc = singly.service('twitter')
-    print "Singly service name '%s' description: '%s'" % (svc.name, svc.desc)
+    twitter_svc = singly.service('twitter')
+    print "Singly service name '%s' description: '%s'" % (twitter_svc.name, 
+                                                          twitter_svc.desc)
 
     val = singly.profiles()
     print "My Singly profiles are %s" % (json.dumps(val, indent=2), )
@@ -247,6 +282,8 @@ def main():
     val = singly.twitter_discovery()
     print "My Singly twitter discovery is %s" % (json.dumps(val, indent=2), )
 
+    #val = twitter_svc.endpoint_get('tweets', '193208621465743360')
+    #print "Tweet is %s" % (json.dumps(val, indent=2), )
 
 if __name__ == "__main__":
     main()
