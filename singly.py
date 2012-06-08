@@ -124,6 +124,7 @@ class Singly(object):
         url = self.API_ENDPOINT + endpoint + '?access_token=' + self.access_token
         response = urllib2.urlopen(url)
         data = response.read()
+        self._log("Endpoint %s returned data %s" % (endpoint, data))
         jsondata = json.loads(data)
         self._log("Endpoint %s returned json %s" % (endpoint, jsondata))
 
