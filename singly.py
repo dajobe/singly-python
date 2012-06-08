@@ -17,10 +17,12 @@ except ImportError:
 class Singly(object):
     """Singly API"""
 
-    API_ENDPOINT = 'https://api.singly.com/'
+    API_ROOT = 'https://api.singly.com/'
 
-    SINGLY_AUTHORIZE_URL    = API_ENDPOINT + 'oauth/authorize'
-    SINGLY_ACCESS_TOKEN_URL = API_ENDPOINT + 'oauth/access_token'
+    API_ENDPOINT = API_ROOT + 'v0/'
+
+    SINGLY_AUTHORIZE_URL    = API_ROOT + 'oauth/authorize'
+    SINGLY_ACCESS_TOKEN_URL = API_ROOT + 'oauth/access_token'
 
     DEFAULT_REDIRECT_URI = 'http://localhost:9999'
 
