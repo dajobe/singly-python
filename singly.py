@@ -14,6 +14,28 @@ try:
 except ImportError:
     import json
 
+
+class Service(dict):
+    """Singly Service"""
+
+    def __init__(self, name, d):
+        """Construct a Service description from service name response data"""
+
+        self.__dict = d
+        for k, v in d.iteritems():
+            setattr(self, k, v)
+        self.name = name
+
+    def __str__(self):
+        return "<Service %s>" % (self.name, )
+
+    def __iter__(self):
+        return iter(self.__dict)
+
+    def __repr__(self):
+        return repr(self.__dict)
+
+
 class Singly(object):
     """Singly API"""
 
@@ -140,9 +162,11 @@ class Singly(object):
         """Internal: get services and their names"""
         if self._services is not None:
             return
-        self._services = self.__endpoint('services')
-        if self._services is not None:
-            self._service_names = self._services.keys()
+        services = self.__endpoint('services')
+        if services is not None:
+            self._services = dict([(name, Service(name, data))
+                                    for (name, data) in services.iteritems()])
+            self._service_names = services.keys()
             self._service_names.sort()
 
     # https://dev.singly.com/services_overview
@@ -204,10 +228,10 @@ def main():
     print "Singly service names are %s" % (json.dumps(val, indent=2), )
 
     val = singly.services()
-    print "Singly services are %s" % (json.dumps(val, indent=2), )
+    print "Singly services are %s" % (str(val), )
 
-    val = singly.service('twitter')
-    print "Singly twitter service description: %s" % (json.dumps(val, indent=2), )
+    svc = singly.service('twitter')
+    print "Singly service name '%s' description: '%s'" % (svc.name, svc.desc)
 
     val = singly.profiles()
     print "My Singly profiles are %s" % (json.dumps(val, indent=2), )
