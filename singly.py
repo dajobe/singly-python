@@ -44,6 +44,10 @@ class Singly(object):
         self.access_token = None
         self._debug = False
 
+        # Filled by _get_services()
+        self._services = None
+        self._service_names = []
+
     def debug(self, debug):
         """Set debug flag"""
         self._debug = debug
@@ -130,10 +134,41 @@ class Singly(object):
 
         return jsondata
 
+    def _get_services(self):
+        """Internal: get services and their names"""
+        if self._services is not None:
+            return
+        self._services = self.__endpoint('services')
+        if self._services is not None:
+            self._service_names = self._services.keys()
+            self._service_names.sort()
+
+    # https://dev.singly.com/services_overview
+    def services(self):
+        """Get services"""
+        self._get_services()
+        return self._services
+
+    def service(self, name):
+        """Get description of service with name"""
+        self._get_services()
+        if name in self._services:
+            return self._services[name]
+        return None
+
+    def service_names(self):
+        """Get services"""
+        self._get_services()
+        return self._service_names
+
+
+    # user specific
     def profiles(self):
         """Get profiles"""
         return self.__endpoint('profiles')
 
+
+    # twitter service
     def twitter_discovery(self):
         """Get twitter discovery"""
         return self.__endpoint('services/twitter')
@@ -162,6 +197,15 @@ def main():
     else:
         access_token = singly.auth('twitter', my_authorize_callback)
         print "Result access token is %s - add to secrets.py" % (access_token, )
+
+    val = singly.service_names()
+    print "Singly service names are %s" % (str(val), )
+
+    val = singly.services()
+    print "Singly services are %s" % (str(val), )
+
+    val = singly.service('twitter')
+    print "Singly twitter service description: %s" % (str(val), )
 
     val = singly.profiles()
     print "My Singly profiles are %s" % (str(val), )
