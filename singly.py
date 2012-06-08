@@ -149,7 +149,12 @@ class Singly(object):
 
     def __endpoint(self, endpoint):
         """Internal: call a Singly API endpoint"""
-        url = self.API_ENDPOINT + endpoint + '?access_token=' + self.access_token
+        endpoint_params = {
+            'access_token' : self.access_token
+            }
+        query_params = urllib.urlencode(endpoint_params)
+        url = self.API_ENDPOINT + endpoint + '?' + query_params
+
         response = urllib2.urlopen(url)
         data = response.read()
         if self._debug:
