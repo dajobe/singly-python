@@ -282,8 +282,10 @@ def main():
     val = singly.twitter_discovery()
     print "My Singly twitter discovery is %s" % (json.dumps(val, indent=2), )
 
-    #val = twitter_svc.endpoint_get('tweets', '193208621465743360')
-    #print "Tweet is %s" % (json.dumps(val, indent=2), )
+    val = twitter_svc.endpoint_range('tweets', limit=2)
+    print "Last 2 Tweets is %s" % (json.dumps(val, indent=2), )
+
+    tweet_id = val[0]['data']['id']
 
 if __name__ == "__main__":
     main()
